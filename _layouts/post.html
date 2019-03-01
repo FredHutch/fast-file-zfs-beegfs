@@ -1,28 +1,22 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>{{ post.title }}</title>
-    <link rel="stylesheet" href="/css/style.css">
-  </head>
-  <body>
-    <nav>
-      <a href="{{ site.baseurl }}">Home</a>
-    </nav>
-    <h1>{{ post.title }}</h1>
-    <section>
-      {{ content }}
-    </section>
-    <section>
-      </html><script src="https://utteranc.es/client.js"
-        repo="FredHutch/fast-file-zfs-beegfs"
-        issue-term="pathname"
-        theme="github-light"
-        crossorigin="anonymous"
-        async>
-    </section>
-</script>
-    <footer>
-      &copy; to me
-    </footer>
-  </body>
+---
+layout: default
+---
+<section>
+<small>{{ post.date | date: "%-d %B %Y" }}</small>
+<h1>{{ post.title }}</h1>
+<small><a href="{{ site.baseurl }}">Home</a>
+
+  {{content}}
+
+{% if post.tags %}
+  <small>tags: <em>{{ post.tags | join: "</em> - <em>" }}</em></small>
+{% endif %}
+</section>
+<section>
+  </html><script src="https://utteranc.es/client.js"
+    repo="FredHutch/fast-file-zfs-beegfs"
+    issue-term="pathname"
+    theme="github-light"
+    crossorigin="anonymous"
+    async>
+</section>
