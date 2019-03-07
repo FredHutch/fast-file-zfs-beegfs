@@ -1,5 +1,5 @@
 ---
-title: Ititial Testing
+title: Initial Testing
 ---
 
 ## Setup
