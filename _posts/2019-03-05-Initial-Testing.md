@@ -137,15 +137,91 @@ numjobs=20
 size=128k
 ```
 
+#### 47%/46% full loaded 11-disk RAIDZ2 vs RAIDZ3:
+
+RAIDZ3 took 83 hours:
+```
+Mar  6 2019 20:03:41.135789535 sysevent.fs.zfs.resilver_start
+Mar 10 2019 07:20:13.331109889 sysevent.fs.zfs.resilver_finish
+```
+RAIDZ2 took 91 hours:
+```
+Mar  6 2019 20:04:41.812605041 sysevent.fs.zfs.resilver_start
+Mar 10 2019 15:08:14.925554048 sysevent.fs.zfs.resilver_finish
+```
+
+fio file:
+```
+[global]
+name=ffr-io-load
+directory=/loc5/ffr_io_load
+blocksize=128k
+ioengine=libaio
+fallocate=native
+write_bw_log
+write_lat_log
+write_iops_log
+write_hist_log
+log_avg_msec=1000
+time_based=1
+runtime=600000
+
+[downloads5]
+directory=/loc5/ffr_io_load
+rw=write
+size=1G
+numjobs=4
+
+[downloads6]
+directory=/loc6/ffr_io_load
+rw=write
+size=1G
+numjobs=4
+
+[reads5]
+directory=/loc5/ffr_io_load
+new_group
+rw=read
+size=1G
+numjobs=4
+
+[reads6]
+directory=/loc6/ffr_io_load
+new_group
+rw=read
+size=1G
+numjobs=4
+
+[random_mix]
+directory=/loc5/ffr_io_load
+new_group
+rw=randrw
+rwmixread=70
+rwmixwrite=30
+numjobs=4
+size=1G
+
+[random_mix]
+directory=/loc6/ffr_io_load
+new_group
+rw=randrw
+rwmixread=70
+rwmixwrite=30
+numjobs=4
+size=1G
+```
+
+### Drives
+
 The drives are Seagate ST12000NM0027, which are "12TB" 4k sector drives maybe presenting as 512 sector. ZFS correctly auto sets ashift to 12, and we see 10TiB raw from these drives.
 
-PTS:
+### PTS Performance
 
 [11-disk RAIDZ2 97% full](https://openbenchmarking.org/result/1902140-SP-11DISKRAI64)
 
 [9-disk RAIDZ2 empty](https://openbenchmarking.org/result/1902145-SP-9DISKRAID82)
 
-FIO performance:
+### FIO Performance
 
 
 | Test | 11 drv | 9 drv | 7 drv |
