@@ -1,0 +1,21 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+
+echo always > /sys/kernel/mm/transparent_hugepage/enabled
+echo always > /sys/kernel/mm/transparent_hugepage/defrag
+
+devices=(sxx syy)
+for dev in "${devices[@]}"
+do
+  echo deadline > /sys/block/${dev}/queue/scheduler
+  echo 128 > /sys/block/${dev}/queue/nr_requests
+  echo 128 > /sys/block/${dev}/queue/read_ahead_kb
+  echo 256 > /sys/block/${dev}/queue/max_sectors_kb
+done
+
+exit 0
