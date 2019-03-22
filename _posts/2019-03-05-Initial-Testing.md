@@ -231,6 +231,14 @@ The drives are Seagate ST12000NM0027, which are "12TB" 4k sector drives maybe pr
 |Mix | 221804 | 196202 | 136796 |
 |Total | 1280866 | 983930 | 687652 |
 
+### ZFS Native Encryption
+
+Testing CPU use and throughput with ZFS native encryption enabled.
+
+```
+fio --name=random-write --ioengine=sync --iodepth=16 --rw=randwrite --bs=4k --direct=0 --size=512m --numjobs=20 --end_fsync=1
+```
+
 
 ### ZED Frustrations
 
