@@ -239,6 +239,20 @@ Testing CPU use and throughput with ZFS native encryption enabled.
 fio --name=random-write --ioengine=sync --iodepth=16 --rw=randwrite --bs=4k --direct=0 --size=512m --numjobs=20 --end_fsync=1
 ```
 
+#### CPU Average System Utilization during fio
+
+| Array Configuration | 10 jobs | 20 jobs | 30 jobs |
+| 11-drive RAIDZ3 LZ4 | 7% | 3% | 4% |
+| 11-drive RAIDZ3 LS4 enc | 16% | 37% | 34% |
+| 11-drive RAIDZ2 LZ4 | 8% | 3% | 4% |
+| 11-drive RAIDZ2 LZ4 enc | 18% | 49% | 40% |
+
+[Note: Odd that 10-job tests cause more CPU use than more jobs, but it bears out over repeated testing.]
+
+fio test for above:
+```
+fio --name=random-write --ioengine=sync --iodepth=16 --rw=randwrite --bs=4k --direct=0 --size=512m --numjobs=<num> --end_fsync=1
+```
 
 ### ZED Frustrations
 
