@@ -275,3 +275,8 @@ While I cannot seem to get zpool -c to spit out the sysfs path for each vdev lik
 24/6:0:24:0/enclosure/6:0:24:0
 
 With Slot00 through Slot23 in that directory. Each Slotnn directory has a fault file that can be read or written to turn the fault light on (1) or off (0).
+
+### Useful Links
+
+[ZFS Capacity calculator](https://wintelguy.com/zfs-calc.pl) - appears to be accurate for the arrays I have built and compared.
+
