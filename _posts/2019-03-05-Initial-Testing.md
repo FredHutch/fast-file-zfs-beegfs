@@ -24,6 +24,8 @@ Missing:
 
 ### Installing deb pacakge built from cloned zfs repo
 
+Build following the build procedure on the zfs on linux wiki.
+
 Error during deb package installation: 
 dpkg: error processing archive zfs-dkms_0.8.0-0_amd64.deb (--install):
  trying to overwrite '/usr/src/zfs-0.8.0/include/linux/blkdev_compat.h', which is also in package kmod-zfs-devel 0.8.0-0
@@ -33,35 +35,13 @@ No zfsutils-linux package is created, but utilities are in 'bin' in the repo aft
 
 ### Loading kernel modules
 
-/etc/modprobe.d/blacklist-zfs.conf:
-```
-# don't load zfs and related modules on boot
-blacklist zcommon
-blacklist znvpair
-blacklist icp
-blacklist spl
-blacklist zavl
-blacklist zunicode
-blacklist zfs
-```
+A script is installed with the _zfs-test_ package: `/usr/share/zfs/zfs.sh`
 
-/etc/rc.local:
-```
-#!/bin/bash
-insmod /lib/modules/4.15.0-45-generic/extra/zfs/spl/spl.ko
-insmod /lib/modules/4.15.0-45-generic/extra/zfs/icp/icp.ko
-insmod /lib/modules/4.15.0-45-generic/extra/zfs/nvpair/znvpair.ko
-insmod /lib/modules/4.15.0-45-generic/extra/zfs/zcommon/zcommon.ko
-insmod /lib/modules/4.15.0-45-generic/extra/zfs/avl/zavl.ko
-insmod /lib/modules/4.15.0-45-generic/extra/zfs/lua/zlua.ko
-insmod /lib/modules/4.15.0-45-generic/extra/zfs/unicode/zunicode.ko
-insmod /lib/modules/4.15.0-45-generic/extra/zfs/zfs/zfs.ko
-```
+This script can load and unload kernel modules - use this to load your newly built modules as it re-calls udev and does other housekeeping.
 
 ### Making udev work
 
-`cp zfs/udev/rules.d/*.rules /lib/udev/rules.d/`
-`cp zfs/cmd/vdev_id/vdev_id /lib/udev/`
+Ensure the zfs package installed zvol, vdev, and zfs rules files into /lib/udev/rules.d.
 
 Our /etc/zfs/vdev_id.conf file:
 ```
@@ -240,6 +220,11 @@ The drives are Seagate ST12000NM0027, which are "12TB" 4k sector drives maybe pr
 zpool create -o feature@encryption=enabled -O compression=lz4 -O encryption=on -O keylocation=prompt -O keyformat=passphrase loc-enc raidz3 <vdevs...>
 ```
 
+#### Notes
+During testing I used a prompted passphrase manually entered. On `zpool import` encrypted zfses are not mounted if they do not have a key available. However, `zfs list` will show the zfs along with the mountpoint, but the mountpoint will be missing from the system. There is no clear indication from zfs that the encrypted file system is missing its key. There is a property _keystatus_ of a zfs that can be queried.
+
+It also appears that you cannot pre-load a zfs key, before the zpool is imported. This makes sense. You can specify `-l` to zpool to try to load encrypted file systems, which will prompt for the key (if you set keylocation to prompt) during import.
+
 #### Testing
 
 Testing CPU use and throughput with ZFS native encryption enabled.
@@ -263,13 +248,14 @@ fio test for above:
 fio --name=random-write --ioengine=sync --iodepth=16 --rw=randwrite --bs=4k --direct=0 --size=512m --numjobs=<num> --end_fsync=1
 ```
 
-### ZED Frustrations
+### ZED
 
-Since we have built zfs out of git, the system is not really installed into our OS. The ZED and zpool -c functions seem to rely on scripts being present in certain directories, which is not the case with our install.
+I initially had some problems with ZED not processing drive faults and not called the led statechange script. Ensuring I had all OS packages installed from the repo build procedure and putting vdev_id.conf in place and processed seems to have made everything work.
+
+You will likely want to edit `/etc/zfs/zed.d/zed.rc` to suit your needs.
 
 I was able to confirm the enclosure/bay mapping for our test system like this:
 
-| | | | |
 |---|---|---|---|
 |05|11|17|23|
 |04|10|16|22|
@@ -278,12 +264,38 @@ I was able to confirm the enclosure/bay mapping for our test system like this:
 |01|07|13|19|
 |00|06|12|18|
 
-While I cannot seem to get zpool -c to spit out the sysfs path for each vdev like it should, they path is:
-
+Our test system has:
+```
 /sys/devices/pci0000:85/0000:85:00.0/0000:86:00.0/host6/port-6:0/expander-6:0/port-6:0:25/end_device-6:0:25/target6:0:
 24/6:0:24:0/enclosure/6:0:24:0
+```
 
 With Slot00 through Slot23 in that directory. Each Slotnn directory has a fault file that can be read or written to turn the fault light on (1) or off (0).
+
+ZFS can give additional information during a `zpool status` run by specifying the `-c` flag. Alone, this should produce a list of available scripts (from /etc/zfs/zpool.d). Given one of the scripts as an argument, it will run the script which will produce additional columns of output that are incorporated into the zpool status output. For example, `zpool status -c ses <pool>` will show you the enclosure and slot IDs for each vdev, along with LED states:
+```
+  pool: loc-enc
+ state: ONLINE
+  scan: resilvered 24K in 0 days 00:00:01 with 0 errors on Mon Apr  1 20:22:55 2019
+config:
+
+        NAME        STATE     READ WRITE CKSUM       enc  encdev  slot  fault_led  locate_led
+        loc-enc     ONLINE       0     0     0
+          raidz3-0  ONLINE       0     0     0
+            e0s0    ONLINE       0     0     0  0:0:24:0    sg24     0          0           0
+            e0s1    ONLINE       0     0     0  0:0:24:0    sg24     1          0           0
+            e0s2    ONLINE       0     0     0  0:0:24:0    sg24     2          0           0
+            e0s3    ONLINE       0     0     0  0:0:24:0    sg24     3          0           0
+            e0s4    ONLINE       0     0     0  0:0:24:0    sg24     4          0           0
+            e0s5    ONLINE       0     0     0  0:0:24:0    sg24     5          0           0
+            e0s6    ONLINE       0     0     0  0:0:24:0    sg24     6          0           0
+            e0s7    ONLINE       0     0     0  0:0:24:0    sg24     7          0           0
+            e0s8    ONLINE       0     0     0  0:0:24:0    sg24     8          0           0
+            e0s9    ONLINE       0     0     0  0:0:24:0    sg24     9          0           0
+            e0s10   ONLINE       0     0     0  0:0:24:0    sg24    10          0           0
+
+errors: No known data errors
+```
 
 ### Useful Links
 
