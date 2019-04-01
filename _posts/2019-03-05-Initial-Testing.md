@@ -233,6 +233,15 @@ The drives are Seagate ST12000NM0027, which are "12TB" 4k sector drives maybe pr
 
 ### ZFS Native Encryption
 
+#### Setup
+
+11-drive RAIDZ3 compressed and encrypted pool:
+```
+zpool create -o feature@encryption=enabled -O compression=lz4 -O encryption=on -O keylocation=prompt -O keyformat=passphrase loc-enc raidz3 <vdevs...>
+```
+
+#### Testing
+
 Testing CPU use and throughput with ZFS native encryption enabled.
 
 ```
