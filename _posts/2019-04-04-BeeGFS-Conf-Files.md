@@ -59,4 +59,4 @@ title: BeeGFS Conf Files
 - `tuneNumWorkers` threads processing client requests - should match underlying storage - default 12.
 - `tuneNumResyncGatherSlaves` threads per target used to crawl for buddy mirror.
 - `tuneNumResyncSlaves` thread per target used to perform resync for buddy mirror.
-- `tuneFindToNumaZone` use if storage and network are in the same NUMA zone (/sys/devices/system/node/node...)
+- `tuneBindToNumaZone` use if storage and network are in the same NUMA zone (/sys/devices/system/node/node...)
