@@ -1,5 +1,5 @@
 ---
-title: Conf Files
+title: BeeGFS Conf Files
 ---
 
 ### Site changes
