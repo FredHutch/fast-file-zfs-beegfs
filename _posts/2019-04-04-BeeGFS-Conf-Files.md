@@ -27,7 +27,7 @@ title: BeeGFS Conf Files
     ```
 - We made no changes from v6.
 - `storeAllowFirstRunInit` must be set to `false` after server initialization to protect against underlying unmounted volumes.- 
-`tuneUsePerUserMsgQueues` set to `true` to preserve fairness in multi-user environments.
+- `tuneUsePerUserMsgQueues` set to `true` to preserve fairness in multi-user environments.
 
 #### beegfs-mgmtd
 - v6 vs. v7 has no changes.
