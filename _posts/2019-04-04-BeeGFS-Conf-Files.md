@@ -46,6 +46,7 @@ title: BeeGFS Conf Files
 - `sysXAttrsEnabled` enable extended attributes.
 - `sysACLsEnabled` enable ACLs with extended attributes - decreases performance.
 - `tuneUseGlobal{Append,File}Locks` - enable global locking.
+- `connMaxInternodeNum` should be set no higher than number of CPU cores
 
 #### beegfs-helperd
 - v6 vs. v7 has no changes.
