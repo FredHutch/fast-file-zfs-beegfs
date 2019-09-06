@@ -65,7 +65,14 @@ def parse_zpool_status(output):
     vvdev_re = re.compile('^\t\s\s\s\s\w* .*')
     zpool_name = None
     vdev_name = None
+    header = None
     for line in output.splitlines():
+        if line[:7] == '  pool:':
+            header = True
+        if line == 'config:':
+            header = False
+        if header:
+            continue
         if line == '\tcache' or line == '\tspares':
             zpool_name = line.strip()
             # create an artifical state for cache and spares
@@ -98,6 +105,9 @@ def parse_zpool_status(output):
                  nodename,
                  zpool_name,
                  zstate))
+        else:
+            # blank lines and stuff not tracked
+            pass
 
 
 def run_zpool():
@@ -120,9 +130,9 @@ test_data = """
   pool: thorium_pool
  state: ONLINE
 status: One or more devices has experienced an unrecoverable error.  An
-        attempt was made to correct the error.  Applications are unaffected.
+	attempt was made to correct the error.  Applications are unaffected.
 action: Determine if the device needs to be replaced, and clear the errors
-        using 'zpool clear' or replace the device with 'zpool replace'.
+	using 'zpool clear' or replace the device with 'zpool replace'.
    see: http://zfsonlinux.org/msg/ZFS-8000-9P
   scan: none requested
 config:
@@ -174,7 +184,7 @@ errors: No known data errors
 """
 
 if __name__ == "__main__":
-    devmode = True
+    devmode = False
     if devmode:
         zpool_output = test_data
     else:
