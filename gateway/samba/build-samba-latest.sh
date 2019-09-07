@@ -15,7 +15,7 @@
 
 # set the Ubuntu Distro from which you want to take the samba source package
 distro='eoan' # Ubuntu 19.10
-export http_proxy=http://proxy-apt:3128/
+#export http_proxy=http://proxy-apt:3128/
 export DEBIAN_FRONTEND=noninteractive
 
 #add-apt-repository ppa:linux-schools/samba-latest
