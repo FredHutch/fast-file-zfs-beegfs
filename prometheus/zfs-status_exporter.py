@@ -8,64 +8,64 @@ import re
 zpool status command is designed for humans to read.  Convert the output of 
 zpool status into machine readable data for use by Prometheus.
 
-Output 3 lines of output for each Zpool object; Pool, Raid device, Vdev.
-Output labels for "health", "read_bytes", "write_bytes" 
+Output 4 lines of output for each Zpool object; Pool, Raid device, Vdev.
+Output labels for "health", "read_errors", "write_errors", "chsum_errors"
 
-Health status gague values for devices, are array indexes to the complete list
-of device states.  gage values ONLINE == 0, etc..
+Health status gauge values for devices, are array indexes to the complete list
+of device states.  gage values ONLINE == 0, etc.. Timeouts and other errors 
+will result in a health value of -1.
 
 """
 
-gage_values = ['ONLINE', 'DEGRADED', 'FAULTED', 'OFFLINE', 'REMOVED', 'UNAVAIL']
+health_states = ['ONLINE', 'DEGRADED', 'FAULTED', 'OFFLINE', 'REMOVED', 'UNAVAIL']
 
-# Spares have different states than vdevs, put all values in one array to disambigute 
-gage_values += ['AVAIL', 'INUSE']
+# Spares have different states than vdevs and pools, put all values in one array to disambigute 
+health_states += ['AVAIL', 'INUSE']
+
 nodename = os.uname().nodename
 
-def device_details(zpool_name, vdev_name, vvdev_name, state, r, w, cksum):
-    """ write metrics for a storage device; health, bytes/read, bytes/write
+def vdev_details(zpool_name, vdev_name, parent, state, r, w, cksum):
+    """ write metrics for a vdev: health and read, write and chsum errors
+        allow some missing metrics for cache, spares
+        parent will be empty for zpools, caches, and spares
     """
-    gage_value = gage_values.index(state)
+    health_value = health_states.index(state)
 
-    gage_name = 'zfs_vvdev_health'
-    print('{}{{hostname="{}",zpool="{}",vdev="{}",vvdev="{}",state="{}"}}{}'.format(
-           gage_name,nodename, zpool_name, vdev_name, vvdev_name, state, gage_value))
+    if parent == "":
+        metric_prefix = 'zfs_zpool_'
+    else:
+        metric_prefix = 'zfs_vdev_'
 
-    gage_name = 'zfs_vvdev_write_bytes'
-    print('{}{{hostname="{}",zpool="{}",vdev="{}",vvdev="{}",state="{}"}}{}{}'.format(
-          gage_name,nodename, zpool_name, vdev_name, vvdev_name, state, w))
+    metric_name = metric_prefix + 'health'
+    print('{}{{hostname="{}",zpool="{}",vdev="{}",parent="{}"}} {}'.format(
+           metric_name, nodename, zpool_name, vdev_name, parent, health_value))
 
-    gage_name = 'zfs_vvdev_read_bytes'
-    print('{}{{hostname="{}",zpool="{}",vdev="{}",vvdev="{}",state="{}"}}{}'.format(
-          gage_name,nodename,zpool_name,vdev_name,vvdev_name,state,r))
+    if w:
+        metric_name = metric_prefix + 'write_errors'
+        print('{}{{hostname="{}",zpool="{}",vdev="{}",parent="{}"}} {}'.format(
+              metric_name, nodename, zpool_name, vdev_name, parent, w))
 
-def vdev_details(zpool_name, vdev_name, state, r, w, cksum):
-    """ write metrics for a zpool Virtual device (RAID); health, bytes/read, bytes/write
-    """
-    gage_value = gage_values.index(state)
+    if r:
+        metric_name = metric_prefix + 'read_errors'
+        print('{}{{hostname="{}",zpool="{}",vdev="{}",parent="{}"}} {}'.format(
+              metric_name, nodename, zpool_name, vdev_name, parent, r))
 
-    gage_name = 'zfs_vdev_health'
-    print('{}{{hostname="{}",zpool="{}",vdev="{}",state="{}"}}{}'.format(
-           gage_name,nodename, zpool_name, vdev_name, state, gage_value))
-
-    gage_name = 'zfs_vdev_write_bytes'
-    print('{}{{hostname="{}",zpool="{}",vdev="{}",state="{}"}}{}'.format(
-          gage_name,nodename, zpool_name, vdev_name, state, w))
-
-    gage_name = 'zfs_vdev_read_bytes'
-    print('{}{{hostname="{}",zpool="{}",vdev="{}",state="{}"}}{}'.format(
-          gage_name, nodename, zpool_name, vdev_name, state, r))
+    if cksum:
+        metric_name = metric_prefix + 'cksum_errors'
+        print('{}{{hostname="{}",zpool="{}",vdev="{}",parent="{}"}} {}'.format(
+              metric_name, nodename, zpool_name, vdev_name, parent, cksum))
 
 def parse_zpool_status(output):
     """ parse the output from zpool status
     output from command line tools are line based
     """
-    pool_re = re.compile('^\t\w*\s*')
-    vdev_re = re.compile('^\t\s\s\w* .*')
-    vvdev_re = re.compile('^\t\s\s\s\s\w* .*')
-    zpool_name = None
-    vdev_name = None
-    header = None
+    pool_re = re.compile('^\t\w+\s*')
+    vdev_re = re.compile('^\t\s\s*\w+.*')
+    special_vdev_re = re.compile('spares|cache|log')
+    raid_vdev_re = re.compile('mirror|raidz')
+    zpool_name = ""
+    vdev_name = ""
+    header = ""
     for line in output.splitlines():
         if line[:7] == '  pool:':
             header = True
@@ -73,38 +73,36 @@ def parse_zpool_status(output):
             header = False
         if header:
             continue
-        if line == '\tcache' or line == '\tspares':
-            zpool_name = line.strip()
-            # create an artifical state for cache and spares
-            print('zfs_zpool_health{{hostname=\"{}",zpool="{}",state="{}"}}'.format(
-                  nodename,
-                  zpool_name,
-                  "ONLINE"))
-        elif vvdev_re.match(line):
-            # storage device
-            (vvdev_name, state, read, write, cksum) = line.split()
-            device_details(zpool_name, vdev_name, vvdev_name, state,
-                           read, writer, cksum)
-        elif vdev_re.match(line): # RAID, Spares, Cache
-            if zpool_name == 'spares':
-                (vdev_name, state) = line.split()[0:2]
-                gage_value = gage_values.index(state) 
-                print('zfs_spare_health{{hostname="{}",zpool="{}",vdev="{}",state="{}"}}{}'.format(
-                      nodename,
-                      zpool_name,
-                      vdev_name,
-                      state, gage_value))
-            else:
+        if vdev_re.match(line):
+            if parent == "spares":
+                # spare device, no stats
+                (vdev_name, state) = line.split()
+                vdev_details("", vdev_name, parent, state, "", "", "")
+            elif raid_vdev_re.search(line):
+                # mirror or raidz vdev
                 (vdev_name, state, read, write, cksum) = line.split()
-                vdev_details(zpool_name, vdev_name, state, read, write, cksum)
+                vdev_details(zpool_name, vdev_name, zpool_name, state,
+                             read, write, cksum)
+                parent = vdev_name
+            else:
+                # normal vdev
+                (vdev_name, state, read, write, cksum) = line.split()
+                vdev_details(zpool_name, vdev_name, parent, state,
+                             read, write, cksum)
         elif pool_re.match(line):
-            (zpool_name, zstate, read, write, cksum) = line.split()
-            if zpool_name == 'Name':
-                continue
-            print('zfs_zpool_health{{hostname=\"{}",zpool="{}",state="{}"}}'.format(
-                 nodename,
-                 zpool_name,
-                 zstate))
+            if special_vdev_re.search(line):
+                # only set parent - no metrics
+                vdev_name = line.strip()
+                parent = vdev_name
+            else:
+                # zpool
+                (zpool_name, state, read, write, cksum) = line.split()
+                if zpool_name == 'NAME':
+                    continue
+                health_value = health_states.index(state)
+                vdev_details(zpool_name, zpool_name, "", state,
+                             read, write, cksum)
+                parent = zpool_name
         else:
             # blank lines and stuff not tracked
             pass
