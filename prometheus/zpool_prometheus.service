@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
-WorkingDirectory=/opt/zpool_prometheus
+WorkingDirectory=/opt/serve_zpool_prometheus
 ExecStart=/usr/bin/uwsgi --ini wsgi.ini
 
 [Install]
