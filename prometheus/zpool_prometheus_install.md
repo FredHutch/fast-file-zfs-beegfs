@@ -2,19 +2,19 @@
 
 Deb pkgs:
 
-`zpool_prometheus` (depends on zfs, which should be already installed in our case)
-`python3` (already installed)
-`uwsgi`
-`uwsgi-plugin-python3`
-`nginx`
+- `zpool_prometheus` (depends on zfs, which should be already installed in our case)
+- `python3` (already installed)
+- `uwsgi`
+- `uwsgi-plugin-python3`
+- `nginx`
 
 Conf files:
 
-`zpool_prometheus_nginx.conf` -> `/etc/nginx/sites-available` and linked to sites-enabled
-`zpool_prometheus.service` -> `/etc/systems/system/zpool_prometheus.service`
-`zpool_prometheus_wsgi.ini` -> `/opt/serve_zpool_prometheus`
-`zpool_prometheus_wsgi.py` -> `/opt/serve_zpool_prometheus`
-`serve_zpool_prometheus.py` -> `/opt/serve_zpool_prometheus`
+- `zpool_prometheus_nginx.conf` -> `/etc/nginx/sites-available` and linked to sites-enabled
+- `zpool_prometheus.service` -> `/etc/systems/system/zpool_prometheus.service`
+- `zpool_prometheus_wsgi.ini` -> `/opt/serve_zpool_prometheus`
+- `zpool_prometheus_wsgi.py` -> `/opt/serve_zpool_prometheus`
+- `serve_zpool_prometheus.py` -> `/opt/serve_zpool_prometheus`
 
 The prometheus.service file references the `/opt/serve_zpool_prometheus` location. Change is that is not the install target.
 
