@@ -1,5 +1,7 @@
 # Important ZFS concepts
 
+To use ZFS, you will create a storage aggregate (pool) from drives (vdevs). You can optionally add additional drives (vdevs) as hot spares, cache, and log (ZiL).
+
 ## Physical Hierarchy
 
 ZFS arranges everything in a hierarchicial structure begining with the creation of a zpool.
@@ -31,5 +33,5 @@ Spares, cache, and log (ZiL) are assocaited with and at the same level as pools.
 | Encryption | dataset |
 | Autoreplace | pool |
 | Spares | pool(s) |
-| Cache | pool(s) |
-| ZiL | pool(s) |
+| Cache | pool |
+| ZiL | pool |
