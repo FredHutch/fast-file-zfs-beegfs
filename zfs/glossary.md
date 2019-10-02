@@ -10,7 +10,7 @@ _nv_ or _nvpair_ - name value pair system used internally by ZFS for metadata
 
 _cache_ - a vdev assigned as L2ARC for a pool
 
-_L2ARC_ - Level 2 [Adjustable/Adaptive Replacement Cache](https://en.wikipedia.org/wiki/Adaptive_replacement_cache))
+_L2ARC_ - Level 2 [Adjustable/Adaptive Replacement Cache](https://en.wikipedia.org/wiki/Adaptive_replacement_cache)
 
 _log_ - a vdev assigned as ZIL for a pool
 
