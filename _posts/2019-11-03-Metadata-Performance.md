@@ -36,6 +36,8 @@ Using pwalk to walk the entire file structure, we found it took about twice as l
 
 #### mdtest
 
+*Nevermind* the directory I chose to test is actually hosted on another device. This is not an NFS platform test as I had thought.
+
 Interesting results from this one. The output for each platform is below.
 
 The way I interpret these results... BeeGFS is about 2X the speed of our NFS platform for file creations, removals, and directory tree creation. The NFS platform is much faster for directory tree removals, which is curious.
