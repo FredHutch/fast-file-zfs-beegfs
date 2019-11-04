@@ -35,12 +35,20 @@ Using ls, we determined that BeeGFS was slower than our previous NFS-based platf
 Using pwalk to walk the entire file structure, we found it took about twice as long on BeeGFS.
 
 #### mdtest
+
+Interesting results from this one. The output for each platform is below.
+
+The way I interpret these results... BeeGFS is about 2X the speed of our NFS platform for file creations, removals, and directory tree creation. The NFS platform is much faster for directory tree removals, which is curious.
+
+For file stat operations, our NFS platform is twice as fast as our BeeGFS cluster, except that it has a much higher standard deviation. I suspect cache is at play here - the entries that are cached are accessed much faster. This makes sense. It would be interesting to re-try the NFS platform test with client caching disabled.
+
+BeeGFS:
 ```
 -- started at 11/01/2019 13:22:48 --
 
 mdtest-1.9.3 was launched with 1 total task(s) on 1 node(s)
-Command line used: src/mdtest "-C" "-T" "-r" "-F" "-d" "/mnt/thorium/fast/_ADM/SciComp/user/bmcgough/mdtest" "-i" "3" "-I" "4096" "-z" "3" "-b" "7" "-L" "-u"
-Path: /mnt/thorium/fast/_ADM/SciComp/user/bmcgough
+Command line used: src/mdtest "-C" "-T" "-r" "-F" "-d" "/mnt/beegfs/fast/_ADM/SciComp/user/bmcgough/mdtest" "-i" "3" "-I" "4096" "-z" "3" "-b" "7" "-L" "-u"
+Path: /mnt/beegfs/fast/_ADM/SciComp/user/bmcgough
 FS: 4731.7 TiB   Used FS: 57.0%   Inodes: 0.0 Mi   Used Inodes: -nan%
 
 1 tasks, 1404928 files
@@ -56,4 +64,28 @@ SUMMARY rate: (of 3 iterations)
    Tree removal      :         96.927         84.924         91.069          4.904
 
 -- finished at 11/01/2019 19:14:57 --
+```
+
+NFS:
+```
+-- started at 11/03/2019 07:44:19 --
+
+mdtest-1.9.3 was launched with 1 total task(s) on 1 node(s)
+Command line used: src/mdtest "-C" "-T" "-r" "-F" "-d" "/fh/fast/_ADM/SciComp/user/bmcgough/mdtest" "-i" "3" "-I" "4096" "-z" "3" "-b" "7" "-L" "-u"
+Path: /fh/fast/_ADM/SciComp/user/bmcgough
+FS: -8589934592.0 GiB   Used FS: 200.0%   Inodes: 8796093022208.0 Mi   Used Inodes: 0.0%
+
+1 tasks, 1404928 files
+
+SUMMARY rate: (of 3 iterations)
+   Operation                      Max            Min           Mean        Std Dev
+   ---------                      ---            ---           ----        -------
+   File creation     :        226.177        204.979        216.422          8.736
+   File stat         :       7903.923       2275.234       6010.631       2641.407
+   File read         :          0.000          0.000          0.000          0.000
+   File removal      :        251.321        183.390        228.056         31.593
+   Tree creation     :        211.374        180.625        200.849         14.305
+   Tree removal      :        280.353        219.106        242.462         27.034
+
+-- finished at 11/03/2019 18:40:35 --
 ```
