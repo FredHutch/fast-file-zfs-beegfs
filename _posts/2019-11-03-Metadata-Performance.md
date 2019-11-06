@@ -67,8 +67,7 @@ SUMMARY rate: (of 3 iterations)
 
 -- finished at 11/01/2019 19:14:57 --
 ```
-
-NFS:
+Avere:
 ```
 -- started at 11/03/2019 07:44:19 --
 
@@ -90,4 +89,27 @@ SUMMARY rate: (of 3 iterations)
    Tree removal      :        280.353        219.106        242.462         27.034
 
 -- finished at 11/03/2019 18:40:35 --
+```
+NFS:
+```
+-- started at 11/04/2019 15:16:01 --
+
+mdtest-1.9.3 was launched with 1 total task(s) on 1 node(s)
+Command line used: src/mdtest "-C" "-T" "-r" "-F" "-d" "/fh/fast/_SR/.mdtest" "-i" "3" "-I" "4096" "-z" "3" "-b" "7" "-L" "-u"
+Path: /fh/fast/_SR
+FS: 1768.3 TiB   Used FS: 79.5%   Inodes: 2750615.9 Mi   Used Inodes: 73.1%
+
+1 tasks, 1404928 files
+
+SUMMARY rate: (of 3 iterations)
+   Operation                      Max            Min           Mean        Std Dev
+   ---------                      ---            ---           ----        -------
+   File creation     :        605.074        599.550        603.190          2.575
+   File stat         :       4759.786       1445.451       3616.146       1535.651
+   File read         :          0.000          0.000          0.000          0.000
+   File removal      :        226.638        185.813        209.339         17.239
+   Tree creation     :        742.143        482.543        623.148        107.077
+   Tree removal      :        279.276        174.610        244.247         49.241
+
+-- finished at 11/04/2019 23:16:43 --
 ```
