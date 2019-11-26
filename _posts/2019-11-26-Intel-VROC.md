@@ -41,3 +41,10 @@ We began the construction of our BeeGFS cluster on Ubuntu 18.04, which is suppor
 In the end we are not currently using VROC with our NVMe devices; they are in a traditional, pure, `mdadm` mirror set.
 
 I was also unable to find a way of confirming that an `mdadm` set is actually using the VROC technology or not. In theory, once the PStack is configured for VMD, there is no other way to use those NVMe devices.
+
+## References
+These are the docs I was able to find:
+
+[Supermicro](https://www.supermicro.com/manuals/other/AOC-VROCxxxMOD.pdf)
+
+[Intel](https://www.intel.com/content/dam/support/us/en/documents/memory-and-storage/ssd-software/Linux_VROC_6-0_User_Guide.pdf)
